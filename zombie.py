@@ -2,20 +2,23 @@ import pygame
 import math
 
 class Zombie(pygame.sprite.Sprite):
-
+    """
+    기획서 [Zombie 클래스] 구현체
+    역할: 좀비 생성, 플레이어 추적(AI), 이동 처리, 속도 증가 처리
+    """
     def __init__(self, start_x, start_y, base_speed=2.0):
         super().__init__()
         
-        # 1. 좀비 생성 (임시 디자인)
+        # 1. 좀비 생성 (임시 디자인 - 초록색 네모)
         # 나중에 실제 좀비 이미지로 바꿀 때는 self.image = pygame.image.load('zombie.png') 등을 사용
         self.image = pygame.Surface((30, 30))
-        self.image.fill((0, 200, 0)) # 좀비 특유의 탁한 초록색
+        self.image.fill((0, 200, 0)) 
         
         self.rect = self.image.get_rect()
         self.rect.x = start_x
         self.rect.y = start_y
         
-        # 정밀한 대각선 이동(이동 처리)을 위한 float 좌표계 보관
+        # 정밀한 대각선 이동을 위한 float 좌표계 보관
         self.pos_x = float(start_x)
         self.pos_y = float(start_y)
         
@@ -32,10 +35,10 @@ class Zombie(pygame.sprite.Sprite):
         player_rect: 플레이어의 Rect 객체 (위치 파악용)
         elapsed_time: 게임 시작 후 경과 시간(초)
         """
-        # 4. 속도 증가 처리
+        # 난이도(속도) 업데이트
         self.update_speed(elapsed_time)
         
-        # 2 & 3. 플레이어 추적 및 이동 처리
+        # 플레이어 추적 및 이동
         self.track_player(player_rect.centerx, player_rect.centery)
 
     def track_player(self, target_x, target_y):
@@ -63,14 +66,13 @@ class Zombie(pygame.sprite.Sprite):
 
     def update_speed(self, elapsed_time):
         """
-        게임 진행 시간에 따른 이동 속도 증가 처리
-        예: 10초마다 속도가 0.5씩 증가
+        게임 진행 시간에 따른 이동 속도 증가 처리 (난이도 조절)
         """
         # 10초 단위로 난이도(속도) 증가 레벨 계산
         speed_level = int(elapsed_time // 10)
         
-        # 새로운 속도 계산
+        # 새로운 속도 계산 (레벨당 0.5씩 증가)
         new_speed = self.base_speed + (speed_level * 0.5)
         
-        # 최대 속도를 넘지 않도록 제한
+        # 최대 속도를 넘지 않도록 안전장치 적용
         self.current_speed = min(new_speed, self.max_speed)
