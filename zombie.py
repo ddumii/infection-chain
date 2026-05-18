@@ -9,10 +9,20 @@ class Zombie(pygame.sprite.Sprite):
     def __init__(self, start_x, start_y, base_speed=2.0):
         super().__init__()
         
-        # 1. 좀비 생성 (임시 디자인 - 초록색 네모)
-        # 나중에 실제 좀비 이미지로 바꿀 때는 self.image = pygame.image.load('zombie.png') 등을 사용
-        self.image = pygame.Surface((30, 30))
-        self.image.fill((0, 200, 0)) 
+        try:
+            # 'assets/' 폴더 안에 있는 'zombie.png' 파일을 불러온다.
+            # .convert_alpha()는 이미지의 투명도(알파 채널)를 최적화해서 나중에 화면 그리는 속도를 올려준다. (PNG 쓰면 필수!)
+            self.image = pygame.image.load('assets/zombie.png').convert_alpha()
+            
+            # 플레이어 크기(40x40)와 비슷하게 맞춰서 좀비 크기를 조절한다.
+            self.image = pygame.transform.scale(self.image, (40, 40)) 
+            
+        except pygame.error:
+            # 만약 이미지 파일 로드에 실패하면 (파일이 없거나, 경로가 틀리거나)
+            print("[Zombie] 경고: assets/zombie.png 이미지 로드 실패! 임시 이미지를 사용합니다.")
+            self.image = pygame.Surface((30, 30))
+            self.image.fill((0, 200, 0)) 
+
         
         self.rect = self.image.get_rect()
         self.rect.x = start_x
