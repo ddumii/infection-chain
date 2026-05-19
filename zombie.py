@@ -15,7 +15,7 @@ class Zombie(pygame.sprite.Sprite):
             self.image = pygame.image.load('assets/zombie.png').convert_alpha()
             
             # 플레이어 크기(40x40)와 비슷하게 맞춰서 좀비 크기를 조절한다.
-            self.image = pygame.transform.scale(self.image, (40, 40)) 
+            self.image = pygame.transform.scale(self.image, (200, 200)) 
             
         except pygame.error:
             # 만약 이미지 파일 로드에 실패하면 (파일이 없거나, 경로가 틀리거나)
