@@ -1,77 +1,59 @@
-import pygame
+import pygame as pg
 import os
 
 class SoundSystem:
-    """
-    네가 준비한 4가지 사운드에 최적화된 매니저 클래스
-    """
     def __init__(self):
-        # 1. 믹서 초기화
-        pygame.mixer.init()
-        self.sounds = {}
-        
-        # 2. 볼륨 기본값 설정 (배경음은 좀 작게, 효과음은 빵빵하게)
-        self.bgm_volume = 0.4
-        self.sfx_volume = 0.8
+        # 오디오 믹서 최적화 초기화 (버퍼를 줄여 총소리 반응 속도를 극대화)
+        if not pg.mixer.get_init():
+            pg.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+            
+        base_path = os.path.dirname(__file__)
+        self.gunshot = None
 
-    def load_all_sounds(self):
-        """
-        게임 시작 전에 한 번에 모든 사운드를 불러오는 함수
-        """
-        # --- [1] 배경음(BGM) 로드 ---
-        # Pygame에서 배경음은 보통 mp3나 ogg 파일을 쓴다.
-        bgm_path = 'assets/bgm.wav' # 네 파일 이름에 맞게 수정해!
-        if os.path.exists(bgm_path):
-            pygame.mixer.music.load(bgm_path)
-            pygame.mixer.music.set_volume(self.bgm_volume)
-            print("[SoundSystem] BGM 로드 완료")
+        # 1. 효과음 (총소리) 로드
+        gunshot_path = os.path.join(base_path, "assets", "gunshot.wav")
+        if os.path.exists(gunshot_path):
+            try:
+                self.gunshot = pg.mixer.Sound(gunshot_path)
+                self.gunshot.set_volume(0.15) # 총소리 볼륨 (0.0 ~ 1.0)
+                print("[SoundSystem] 성공: gunshot.wav 효과음 로드 완료!")
+            except Exception as e:
+                print(f"[SoundSystem] 에러: gunshot.wav 로드 실패 -> {e}")
         else:
-            print("[SoundSystem] 경고: BGM 파일이 없습니다.")
+            print("[SoundSystem] 경고: assets/gunshot.wav 파일이 없습니다.")
 
-        # --- [2] 효과음(SFX) 로드 ---
-        # Pygame에서 효과음은 .wav 확장자가 딜레이 없이 가장 잘 터진다.
-        sfx_files = {
-            'gunshot': 'assets/gunshot.wav',
-            'zombie_spawn': 'assets/zombie_spawn.wav',
-            'reload': 'assets/reload.wav'
-        }
+        # 2. 배경음악 (BGM) 로드 및 자동 재생
+        bgm_path = os.path.join(base_path, "assets", "bgm.wav")
+        if os.path.exists(bgm_path):
+            try:
+                pg.mixer.music.load(bgm_path)
+                pg.mixer.music.set_volume(0.3) # BGM은 총소리보다 조금 작게 세팅 (0.3)
+                # -1은 무한 반복 스트리밍을 의미함
+                pg.mixer.music.play(-1)
+                print("[SoundSystem] 성공: bgm.wav 배경음악 무한 재생 시작!")
+            except Exception as e:
+                print(f"[SoundSystem] 에러: bgm.wav 로드/재생 실패 -> {e}")
+        else:
+            print("[SoundSystem] 경고: assets/bgm.wav 파일이 없습니다.")
 
-        for name, path in sfx_files.items():
-            if os.path.exists(path):
-                sound = pygame.mixer.Sound(path)
-                sound.set_volume(self.sfx_volume)
-                self.sounds[name] = sound
-                print(f"[SoundSystem] SFX 로드 완료: {name}")
-            else:
-                print(f"[SoundSystem] 경고: {name} 파일이 없습니다. 경로: {path}")
-
-    # --- 재생 관련 함수들 ---
-    def play_bgm(self):
-        """배경음악 무한 반복 재생"""
+    def play_gunshot(self):
+        """마우스 좌클릭 시 호출"""
+        if self.gunshot:
+            try:
+                self.gunshot.play()
+            except Exception as e:
+                print(f"[SoundSystem] 총소리 재생 중 일시적 오류: {e}")
+                
+    def stop_bgm(self):
+        """게임오버 시 BGM을 끄고 싶다면 호출"""
         try:
-            pygame.mixer.music.play(-1) # -1은 무한반복을 의미함
-        except:
+            pg.mixer.music.stop()
+        except Exception:
             pass
 
-    def stop_bgm(self):
-        pygame.mixer.music.stop()
-
-    def play_sfx(self, name):
-        """이름을 입력하면 해당 효과음을 재생"""
-        if name in self.sounds:
-            self.sounds[name].play()
-
-# 1. 우리가 만든 사운드 시스템 설계도(Class)를 불러온다.
-from sound_system import SoundSystem
-
-# 2. 설계도를 바탕으로 실제 '사운드 기계(객체)'를 하나 제작해서 변수에 담는다. 
-# (이때 __init__ 함수가 스르륵 실행되면서 기본 세팅이 됨!)
-my_audio = SoundSystem()
-
-# 3. 이제 만들어진 그 기계(my_audio)의 버튼(함수)을 누른다!
-my_audio.load_all_sounds()
-
-#사운드 확인
-#my_audio.play_bgm()
-#my_audio.play_sfx('zombie_spawn')
-#my_audio.play_sfx('reload')
+    def restart_bgm(self):
+        """게임 재시작 시 BGM을 다시 켜고 싶다면 호출"""
+        try:
+            pg.mixer.music.play(-1)
+        except Exception:
+            pass

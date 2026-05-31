@@ -1,3 +1,5 @@
+import pygame as pg, math
+
 def handle_collisions(player, bullets_group, zombies_group):
     """
     게임 내 모든 충돌을 처리하는 독립 모듈
